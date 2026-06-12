@@ -92,7 +92,7 @@ While explicit temporal conditioning is essential in standard diffusion models f
   \centering
   \includegraphics[width=0.75\linewidth]{model.pdf}
   \caption{This work investigates the removal of explicit time step $t$ in generative speech enhancement models, where $X_t$ denotes the linear interpolation of clean speech and noisy speech, $y$ represents the noisy speech input, and $t$ is the time step.}
-  \label{fig:modelf}
+  \label{fig:model}
   \vspace{-12pt}
 \end{figure}
 
@@ -149,16 +149,16 @@ where the step size schedule is defined as $\Delta t(i) = \frac{1 - t_\delta}{N-
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=0.95\linewidth, trim=0pt 5pt 0pt 5pt, clip]{modela.pdf}
+  \includegraphics[width=0.95\linewidth, trim=0pt 5pt 0pt 5pt, clip]{comparison.pdf}
   \caption{(a) denotes Rectified Flow, (b) denotes Conditional Flow Matching, and (c) denotes Autonomous Rectified Flow. We observe that the training objective of Rectified Flow is fixed and independent of the time step $t$, thus we propose (c), where $t$ represents the current position instead of the time step embedding of $t$. Where $X_t$ denotes the linear interpolation of clean speech and noisy speech, $Y$ represents the noisy speech input, $X_0$ represents the clean speech input.}
   \label{fig:comparison}
   \vspace{-10pt}
 \end{figure*}
 
 \section{Proposed Approach}%重点内容 考虑到还有一个等价噪声分布的主线 我们将目标向量场命名为去噪向量场
-% We illustrate the conceptual difference between our method and prior arts in Figure~\ref{fig:modela}. As shown in Figure~\ref{fig:modela}(a)-(b), traditional Rectified Flow and Conditional Flow Matching methods rely on an explicit time step or noise schedule to guide the network in predicting the denoising direction. In contrast, in high-dimensional speech signals, each noisy observation inherently contains enough information to infer its noise level~\cite{pmlr-v267-sun25g}. Leveraging this property, we propose the Autonomous Rectified Flow (ARF) framework (Figure~\ref{fig:modela}(c)), which removes the explicit time embedding and predicts the denoising direction solely from the current noisy state and the mixture signal.
+% We illustrate the conceptual difference between our method and prior arts in Figure~\ref{fig:model}. As shown in Figure~\ref{fig:model}(a)-(b), traditional Rectified Flow and Conditional Flow Matching methods rely on an explicit time step or noise schedule to guide the network in predicting the denoising direction. In contrast, in high-dimensional speech signals, each noisy observation inherently contains enough information to infer its noise level~\cite{pmlr-v267-sun25g}. Leveraging this property, we propose the Autonomous Rectified Flow (ARF) framework (Figure~\ref{fig:model}(c)), which removes the explicit time embedding and predicts the denoising direction solely from the current noisy state and the mixture signal.
 
-We illustrate the conceptual differences between our method and prior approaches in Figure~\ref{fig:modela}. As shown in Figure~\ref{fig:modela}(a)–(b), traditional Rectified Flow and Conditional Flow Matching methods rely on explicit time-step embeddings or noise schedules to guide the network in predicting the denoising direction. In contrast, high-dimensional speech signals inherently contain sufficient information for inferring the noise level from a noisy observation~\cite{pmlr-v267-sun25g}. Leveraging this property, we propose the Autonomous Rectified Flow framework (Figure~\ref{fig:modela}(c)), which removes explicit temporal conditioning and predicts the denoising direction solely from the current state and the noisy mixture.
+We illustrate the conceptual differences between our method and prior approaches in Figure~\ref{fig:model}. As shown in Figure~\ref{fig:model}(a)–(b), traditional Rectified Flow and Conditional Flow Matching methods rely on explicit time-step embeddings or noise schedules to guide the network in predicting the denoising direction. In contrast, high-dimensional speech signals inherently contain sufficient information for inferring the noise level from a noisy observation~\cite{pmlr-v267-sun25g}. Leveraging this property, we propose the Autonomous Rectified Flow framework (Figure~\ref{fig:model}(c)), which removes explicit temporal conditioning and predicts the denoising direction solely from the current state and the noisy mixture.
 
 \subsection{ARF: Autonomous Rectified Flow}
 %y是因为强相关性 也就是端点固定 所以不乱生成
