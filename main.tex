@@ -55,11 +55,8 @@
 %==================================================================================
 % Keywords
 \keywords{speech enhancement; rectified flow; flow matching; autonomous ODE; generative models}
-\newcommand{\blue}[1]{\textcolor{blue}{#1}}
-\newcommand{\red}[1]{\textcolor{red}{#1}}
 \usepackage{comment}
 \usepackage{booktabs,multirow}
-\usepackage{multirow}
 \hyphenation{net-works}
 \emergencystretch=3em
 \hbadness=10000
@@ -99,19 +96,19 @@ While explicit temporal conditioning is essential in standard diffusion models f
 In this paper, we propose the Autonomous Rectified Flow (ARF) framework for time-unconditional SE, bridging the gap between flow matching and direct noise prediction~\cite{10887784}. The main contributions of this paper are summarized as follows:
 \begin{itemize}
 \item We reveal the time-invariance of the target vector field in linear-path generative SE and prove that explicit time-step embeddings are mathematically redundant for this task.
-\item We propose ARF, a novel time-unconditional SE framework built upon an autonomous ordinary differential equation (ODE) system, which completely removes explicit temporal conditioning and learns a static denoising direction equivalent to the underlying noise distribution.
+\item We propose ARF, a novel time-unconditional SE framework built upon an autonomous ordinary differential equation (ODE) system, which completely removes explicit temporal conditioning(Figure~\ref{fig:model}) and learns a static denoising direction equivalent to the underlying noise distribution.
 \item ARF enables highly efficient inference. It achieves a competitive PESQ score of 3.11 with $NFE=5$ and reduces the RTF to as low as 0.02 with $NFE=1$, significantly outperforming existing single-step generative SE methods.
 \end{itemize}
 
-\section{Related Work}%继续完善即可
+\section{Related Work}
 \subsection{BBED: Brownian Bridge with Exponential Diffusion}
 To mitigate the prior mismatch inherent in score-based generative models for SE, we adopt a forward process based on a Brownian bridge~\cite{lay23_interspeech}. Unlike conventional stochastic differential equations (SDEs), whose means converge to the noisy mixture only in the limit, a Brownian bridge is characterized by fixed boundary conditions. Using a linear interpolation factor $k(t)=t$ for $t\in[0,1)$, the mean of the SDE is defined as:
 \begin{equation}
-    \mu(t) = (1 - t)x_0 + ty.
+    \mu(t) = (1 - t)x_0 + ty
 \end{equation}
 According to the BBED framework, the specific drift coefficient $f(x_t, y)$ required to achieve this mean evolution is derived by solving the corresponding SDE equations:
 \begin{equation}
-    f(x_t, y) = \frac{y - x_t}{1 - t}.
+    f(x_t, y) = \frac{y - x_t}{1 - t}
 \end{equation}
 Combined with an exponential diffusion coefficient $g(t) = \sqrt{c}k^t$, this formulation ensures that the variance $\sigma(t)^2$ vanishes at both $t=0$ and $t=1$, effectively pinning the process to the clean speech $x_0$ and the noisy mixture $y$.
 
@@ -155,18 +152,18 @@ where the step size schedule is defined as $\Delta t(i) = \frac{1 - t_\delta}{N-
   \vspace{-10pt}
 \end{figure*}
 
-\section{Proposed Approach}%重点内容 考虑到还有一个等价噪声分布的主线 我们将目标向量场命名为去噪向量场
-% We illustrate the conceptual difference between our method and prior arts in Figure~\ref{fig:model}. As shown in Figure~\ref{fig:model}(a)-(b), traditional Rectified Flow and Conditional Flow Matching methods rely on an explicit time step or noise schedule to guide the network in predicting the denoising direction. In contrast, in high-dimensional speech signals, each noisy observation inherently contains enough information to infer its noise level~\cite{pmlr-v267-sun25g}. Leveraging this property, we propose the Autonomous Rectified Flow (ARF) framework (Figure~\ref{fig:model}(c)), which removes the explicit time embedding and predicts the denoising direction solely from the current noisy state and the mixture signal.
-
-We illustrate the conceptual differences between our method and prior approaches in Figure~\ref{fig:model}. As shown in Figure~\ref{fig:model}(a)–(b), traditional Rectified Flow and Conditional Flow Matching methods rely on explicit time-step embeddings or noise schedules to guide the network in predicting the denoising direction. In contrast, high-dimensional speech signals inherently contain sufficient information for inferring the noise level from a noisy observation~\cite{pmlr-v267-sun25g}. Leveraging this property, we propose the Autonomous Rectified Flow framework (Figure~\ref{fig:model}(c)), which removes explicit temporal conditioning and predicts the denoising direction solely from the current state and the noisy mixture.
+\section{Proposed Approach}
+%还有一个等价噪声分布的主线 我们将目标向量场命名为去噪向量场
+We illustrate the conceptual differences between our method and prior approaches in Figure~\ref{fig:comparison}. As shown in Figure~\ref{fig:comparison}(a)–(b), traditional Rectified Flow and Conditional Flow Matching methods rely on explicit time-step embeddings or noise schedules to guide the network in predicting the denoising direction. In contrast, high-dimensional speech signals inherently contain sufficient information for inferring the noise level from a noisy observation~\cite{pmlr-v267-sun25g}. Leveraging this property, we propose the Autonomous Rectified Flow framework (Figure~\ref{fig:comparison}(c)), which removes explicit temporal conditioning and predicts the denoising direction solely from the current state and the noisy mixture.
 
 \subsection{ARF: Autonomous Rectified Flow}
 %y是因为强相关性 也就是端点固定 所以不乱生成
-%z是因为模型要有生成能力 删除z的话就没有生成能力了
-%z和y混合生成 z全覆盖 目前还没在训练 其实纯z也是可以的 至于sigma 之后补个消融实验
-%这里的路径其实和BBED一样 插值路径是锯齿状 所以我们后期可以开展其他路径如指数
-The ARF framework models the generative process by leveraging the time-invariance of a denoising target vector field. For a clean speech $x_0$ and a noisy observation $y$, we define a straight path connecting $x_0$ and $y$:
+%z是因为模型要有生成能力 删除z模型失去生成功能
+%z和y混合生成或者z全覆盖（纯z也是可以 淹没）
+%这里的路径其实和BBED一样（插值路径是锯齿状）
 %关于这里的符号问题 流模型基于扩散的不一样
+The ARF framework models the generative process by leveraging the time-invariance of a denoising target vector field. For a clean speech $x_0$ and a noisy observation $y$, we define a straight path connecting $x_0$ and $y$:
+
 \begin{equation}
     x_t = (1 - t)x_0 + t(y + \sigma z), \quad z \sim \mathcal{N}(0, I)
 \end{equation}
@@ -181,7 +178,7 @@ Because the noisy mixture $y$ is mathematically defined as the clean speech $x_0
 \end{equation}
 This shows that the target is determined solely by the noise realization, independent of any temporal scaling. We define the neural network to directly estimate the target vector field:
 \begin{equation}
-    \mathcal{L}_{\text{ARF}}(\theta) = \mathbb{E}_{t, x_1, y, z} \left[ \left\lVert v_\theta(x_t, y) - u \right\rVert^2 \right]
+    \mathcal{L}_{\text{ARF}}(\theta) = \mathbb{E}_{t, x_0, y, z} \left[ \left\lVert v_\theta(x_t, y) - u \right\rVert^2 \right]
 \end{equation}
 During training, the network learns to map the current noisy state to the corresponding noise correction, without relying on any explicit time step embedding. This avoids overfitting to temporal patterns and encourages smoother, more generalizable denoising fields.
 
@@ -204,27 +201,21 @@ This approach ensures a deterministic number of network evaluations while fully 
 
 \section{Experiments}
 \subsection{Datasets}
-We conduct experiments on the VoiceBank+DEMAND~\cite{botinhao2016investigating} dataset, which consists of clean speech from VCTK~\cite{veaux2013voice} mixed with noise from DEMAND~\cite{thiemann2013diverse}. In addtion, to evaluate the generalization capability of the proposed model, we additionally employ the public synthetic test set from the INTERSPEECH 2020 Deep Noise Suppression (DNS) Challenge~\cite{reddy20_interspeech} for a comprehensive evaluation.
+We conduct experiments on the VoiceBank+DEMAND~\cite{botinhao2016investigating} dataset, which consists of clean speech from VCTK~\cite{veaux2013voice} mixed with noise from DEMAND~\cite{thiemann2013diverse}. In addition, to evaluate the generalization capability of the proposed model, we additionally employ the public synthetic test set from the INTERSPEECH 2020 Deep Noise Suppression (DNS) Challenge~\cite{reddy20_interspeech} for a comprehensive evaluation.
 
 \subsection{Implementation Details}
-Our model is based on the Noise Conditional Score Network (NCSN++)~\cite{lemercier2023storm} architecture. Specifically, we freeze the time step input $t$ and the noise scheduling module to construct our time-unconditional autonomous network. We evaluate our framework against representative boundary-anchored generative SE baselines, namely FlowSE and BBED. For ablation studies, the models are trained under the same framework with a unified parameter size of 27.8M for consistent comparison. Results of FlowSE are obtained using publicly available pre-trained models for inference.
+Our model is based on the Noise Conditional Score Network (NCSN++)~\cite{lemercier2023storm} architecture. Specifically, we freeze the time step input $t$ and the noise scheduling module to construct our time-unconditional autonomous network. We benchmark our framework against two generative SE baselines, FlowSE and BBED; all three models adopt a consistent 65.6M parameter architecture. For ablation studies, the models are trained under the same framework with a unified parameter size of 27.8M for consistent comparison. Results of FlowSE are obtained using publicly available pre-trained models for inference.
 
-All models are trained with the Adam optimizer with a learning rate of $1 \times 10^{-4}$ and a batch size of 4 for 100 epochs. The path scaling parameter $\sigma$ is set to 0.5, and Exponential Moving Average (EMA) is applied to the parameters with a decay factor of 0.999 to stabilize training. For short-time Fourier transform, the FFT size and hop length are set to 510 and 128, respectively. The source code is available online\footnote{\url{https://github.com/zhangwen0821/ARFSE.git}}.
+All models are trained with the Adam optimizer with a learning rate of $1 \times 10^{-4}$ and a batch size of 4 for 100 epochs. The parameter $\sigma$ is set to 0.5, and Exponential Moving Average (EMA) is applied to the parameters with a decay factor of 0.999 to stabilize training. For short-time Fourier transform, the FFT size and hop length are set to 510 and 128, respectively. The source code is available online\footnote{\url{https://github.com/zhangwen0821/ARFSE.git}}.
 
-Our evaluation proceeds in two stages. First, we evaluate ARFSE on the VoiceBank+DEMAND dataset to establish core performance and efficiency against FlowSE and BBED across different NFEs settings. Second, to test generalization and robustness in unseen acoustic environments, we benchmark the models on the DNS Challenge dataset. 
+Our evaluation proceeds in two stages. First, we evaluate ARFSE on VoiceBank+DEMAND to compare its core performance and inference efficiency with FlowSE and BBED under different NFE configurations. Second, to test generalization and robustness in unseen acoustic environments, we benchmark the models on the DNS Challenge dataset. 
 
 Performance is evaluated using standard metrics including PESQ~\cite{recommendation2001perceptual} scores,  wav2vec MOS (WVMOS)~\cite{andreev2023hifi++}, eSTOI~\cite{jensen2016algorithm}, DNSMOS P.835~\cite{reddy2022dnsmos} including SIG, BAK, OVRL, Scale-Invariant Signal-to-Distortion Ratio (SI-SDR)~\cite{le2019sdr} and Real-Time Factor (RTF). The RTF is defined as:
 \begin{equation}
     \text{RTF} = \frac{T_{\text{infer}}}{T_{\text{audio}}}
 \end{equation}
 where $T_{\text{infer}}$ denotes the total wall-clock inference time required by the model, and $T_{\text{audio}}$ represents the actual physical duration of the processed speech signals.
-%补充rtf计算逻辑
 
-
-%关于实验部分3表
-%第一个表是bbed flowmse以及arfse 均为65M参数量来进行实验 bbed cite flowmse flowmse reinfer多步数对比
-%第二个表格是flowse reinfer和arfse的泛化性对比 在dns2020数据集上面进行测评 指标可多加一个rtf
-%第三个表格是时间步t的消融实验以及推理效率 使用27.8M参数量在统一框架下进行train
 
 \begin{table*}[t]
   \caption{Experimental results on the VoiceBank+DEMAND dataset. $\uparrow$ denotes higher metric value indicates better performance. Bold and underlined values represent the best overall results and the best results within a specific method.}
@@ -238,18 +229,18 @@ where $T_{\text{infer}}$ denotes the total wall-clock inference time required by
     \textbf{Method} & \textbf{NFEs} & \textbf{PESQ} $\uparrow$ & \textbf{eSTOI} $\uparrow$ & \textbf{SI-SDR} $\uparrow$ & \textbf{WV-MOS} $\uparrow$ & \textbf{DNSMOS} $\uparrow$ & \textbf{SIG} $\uparrow$ & \textbf{BAK} $\uparrow$ & \textbf{OVRL} $\uparrow$ \\
     \midrule
     \multirow{2}{*}{BBED~\cite{lay23_interspeech}}
-    & 60 & \underline{3.09} & \underline{0.88} & \underline{18.75} & \underline{4.29} & \underline{3.57} & 3.48 & \underline{4.04} & \underline{3.20} \\
-    & 1 & 2.43 & 0.86 & 16.84 & 3.93 & 3.30 & 3.48 & 3.68 & 3.02 \\
+    & $60$ & \underline{$3.09$} & \underline{$0.88$} & \underline{$18.75$} & \underline{$4.29$} & \underline{$3.57$} & $3.48$ & \underline{$4.04$} & \underline{$3.20$} \\
+    & $1$ & $2.43$ & $0.86$ & $16.84$ & $3.93$ & $3.30$ & $3.48$ & $3.68$ & $3.02$ \\
     \midrule
     \multirow{3}{*}{FLOWSE~\cite{10888274}}
-    & 5 & \underline{3.05} & 0.87 & 18.91 & \textbf{\underline{4.30}} & 3.56 & \underline{3.48} & 4.04 & 3.20 \\
-    & 2 & 2.89 & 0.87 & \underline{19.67} & 4.29 & \underline{3.57} & 3.47 & \textbf{\underline{4.08}} & \underline{3.21} \\
-    & 1 & 2.86 & 0.87 & 19.57 & 4.26 & 3.56 & 3.46 & 4.06 & 3.19 \\
+    & $5$ & \underline{$3.05$} & $0.87$ & $18.91$ & \underline{$\mathbf{4.30}$} & $3.56$ & \underline{$3.48$} & $4.04$ & $3.20$ \\
+    & $2$ & $2.89$ & $0.87$ & \underline{$19.67$} & $4.29$ & \underline{$3.57$} & $3.47$ & \underline{$\mathbf{4.08}$} & \underline{$3.21$} \\
+    & $1$ & $2.86$ & $0.87$ & $19.57$ & $4.26$ & $3.56$ & $3.46$ & $4.06$ & $3.19$ \\
     \midrule
     \multirow{3}{*}{ARFSE}
-    & 5 & \textbf{\underline{3.11}} & 0.88 & 18.02 & 4.27 & 3.56 & \textbf{\underline{3.50}} & 4.03 & 3.20 \\
-    & 2 & 3.06 & 0.88 & 19.19 & \underline{4.29} & 3.57 & 3.49 & 4.06 & 3.21 \\
-    & 1 & 3.00 & 0.88 & \textbf{\underline{19.91}} & 4.27 & \textbf{\underline{3.58}} & 3.48 & \underline{4.07} & \textbf{\underline{3.22}} \\
+    & $5$ & \underline{$\mathbf{3.11}$} & $0.88$ & $18.02$ & $4.27$ & $3.56$ & \underline{$\mathbf{3.50}$} & $4.03$ & $3.20$ \\
+    & $2$ & $3.06$ & $0.88$ & $19.19$ & \underline{$4.29$} & $3.57$ & $3.49$ & $4.06$ & $3.21$ \\
+    & $1$ & $3.00$ & $0.88$ & \underline{$\mathbf{19.91}$} & $4.27$ & \underline{$\mathbf{3.58}$} & $3.48$ & \underline{$4.07$} & \underline{$\mathbf{3.22}$} \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -266,21 +257,22 @@ where $T_{\text{infer}}$ denotes the total wall-clock inference time required by
 \toprule
 \multirow{2}{*}{\textbf{Method}} & \multirow{2}{*}{\textbf{NFEs}} & \multicolumn{4}{c}{\textbf{no reverb}} & \multicolumn{4}{c}{\textbf{with reverb}} \\
 \cmidrule(lr){3-6} \cmidrule(lr){7-10}
-& \textbf{} & \textbf{PESQ} $\uparrow$ & \textbf {eSTOI} $\uparrow$ & \textbf{SI-SDR} $\uparrow$ & \textbf{DNSMOS} $\uparrow$ & \textbf{PESQ} $\uparrow$ & \textbf{eSTOI} $\uparrow$ & \textbf{SI-SDR} $\uparrow$ & \textbf{DNSMOS} $\uparrow$ \\
+& \textbf{} & \textbf{PESQ} $\uparrow$ & \textbf{eSTOI} $\uparrow$ & \textbf{SI-SDR} $\uparrow$ & \textbf{DNSMOS} $\uparrow$ & \textbf{PESQ} $\uparrow$ & \textbf{eSTOI} $\uparrow$ & \textbf{SI-SDR} $\uparrow$ & \textbf{DNSMOS} $\uparrow$ \\
 \midrule
 \multirow{3}{*}{FLOWSE}
-& 5 & \textbf{\underline{2.39}} & 0.90 & 15.82 & \underline{4.03} & \textbf{\underline{1.09}} & 0.36 & -0.98 & \underline{3.48} \\
-& 2 & 2.25 & 0.90 & \underline{16.12} & 4.01 & 1.08 & 0.36 & -0.26 & 3.31 \\
-& 1 & 2.25 & 0.90 & 16.04 & 3.98 & 1.08 & \textbf{\underline{0.37}} & \textbf{\underline{-0.21}} & 3.26 \\
+& $5$ & \underline{$\mathbf{2.39}$} & $0.90$ & $15.82$ & \underline{$4.03$} & \underline{$\mathbf{1.09}$} & $0.36$ & $-0.98$ & \underline{$3.48$} \\
+& $2$ & $2.25$ & $0.90$ & \underline{$16.12$} & $4.01$ & $1.08$ & $0.36$ & $-0.26$ & $3.31$ \\
+& $1$ & $2.25$ & $0.90$ & $16.04$ & $3.98$ & $1.08$ & \underline{$\mathbf{0.37}$} & \underline{$\mathbf{-0.21}$} & $3.26$ \\
 \midrule
 \multirow{3}{*}{ARFSE}
-& 5 & \underline{2.38} & \textbf{\underline{0.92}} & 16.59 & \textbf{\underline{4.04}} & \textbf{\underline{1.09}} & \underline{0.35} &-1.17  & \textbf{\underline{3.55}} \\
-& 2 & 2.31 & 0.91 & 17.07 & 4.02 & 1.08 & 0.34 & -1.20 & 3.36 \\
-& 1 & 2.26 & 0.91 & \textbf{\underline{17.07}} & 4.00 & 1.07 & 0.34 & \underline{-0.92} & 3.28 \\
+& $5$ & \underline{$2.38$} & \underline{$\mathbf{0.92}$} & $16.59$ & \underline{$\mathbf{4.04}$} & \underline{$\mathbf{1.09}$} & \underline{$0.35$} & $-1.17$  & \underline{$\mathbf{3.55}$} \\
+& $2$ & $2.31$ & $0.91$ & $17.07$ & $4.02$ & $1.08$ & $0.34$ & $-1.20$ & $3.36$ \\
+& $1$ & $2.26$ & $0.91$ & \underline{$\mathbf{17.07}$} & $4.00$ & $1.07$ & $0.34$ & \underline{$-0.92$} & $3.28$ \\
 \bottomrule
 \end{tabular}
 \vspace{-8pt}
 \end{table*}
+
 
 \begin{table}[t]
 \centering
@@ -294,16 +286,16 @@ where $T_{\text{infer}}$ denotes the total wall-clock inference time required by
 \textbf{Method} & \textbf{NFEs} & \textbf{PESQ} $\uparrow$ & \textbf{eSTOI} $\uparrow$ & \textbf{SI-SDR} $\uparrow$ & \textbf{RTF} $\downarrow$ \\
 \midrule
 \multirow{2}{*}{FlowSE (w/ $t$)}
-& 5 & 2.98 & 0.87 & 18.46 & 0.10 \\
-& 1 & 2.87 & 0.87 & 20.02 & 0.05 \\
+& $5$ & $2.98$ & $0.87$ & $18.46$ & $0.19$ \\
+& $1$ & $2.87$ & $0.87$ & $20.02$ & $0.05$ \\
 \addlinespace
 \midrule
 \multirow{2}{*}{ARFSE (w/o $t$)}
-& 5 & 3.09 & 0.88 & 18.42 & 0.14 \\
-& 1 & 2.97 & 0.88 & 20.01 & 0.02 \\
+& $5$ & $3.09$ & $0.88$ & $18.42$ & $0.13$ \\
+& $1$ & $2.97$ & $0.88$ & $20.01$ & $0.02$ \\
 \addlinespace
 \midrule
-MeanFlowSE~\cite{11465151} & 1 & 2.94 & 0.88 & 19.97 & 0.11 \\
+MeanFlowSE~\cite{11465151} & $1$ & $2.94$ & $0.88$ & $19.97$ & $0.11$ \\
 \bottomrule
 \end{tabular}
 \vspace{-10pt}
@@ -314,10 +306,10 @@ MeanFlowSE~\cite{11465151} & 1 & 2.94 & 0.88 & 19.97 & 0.11 \\
 As shown in Table~\ref{tab:vb_dmd}, ARFSE delivers competitive performance against baseline methods across different NFE configurations. At $NFE=5$, ARFSE achieves a PESQ of 3.11 and an eSTOI of 0.88, compared to a PESQ of 3.05 for FlowSE. Under the single-step constraint ($NFE=1$), ARFSE maintains a PESQ of 3.00 and an eSTOI of 0.88, while the single-step BBED and FlowSE yield PESQ scores of 2.43 and 2.86, respectively. Furthermore, single-step ARFSE yields an SI-SDR of 19.91~dB, a DNSMOS of 3.58, and an OVRL of 3.22. These results indicate that the autonomous dynamical system mitigates the performance degradation typically observed in time-conditioned generative frameworks under low NFE budgets.
 
 \subsection{Generalization and Robustness}
-Table~\ref{tab:generalization_ablation} compares the cross-dataset generalization capabilities of the models on the unseen DNS Challenge dataset. In this out-of-distribution evaluation, ARFSE demonstrates comparable overall performance to FlowSE. Specifically, across both the non-reverberant (\textit{no reverb}) and with reverberant (\textit{with reverb}) settings, both models exhibit similar variations in perceptual scores and objective metrics, with both frameworks experiencing noticeable performance degradation in severe reverberant environments. These results indicate that time-unconditional framework achieves generalization comparable to traditional flows. To further validate our framework, future work will focus on extensive evaluations in universal speech enhancement.
+Table~\ref{tab:generalization_ablation} compares the cross-dataset generalization capabilities of the models on the unseen DNS Challenge dataset. In this out-of-distribution evaluation, ARFSE demonstrates comparable overall performance to FlowSE. Specifically, across both the non-reverberant (\textit{no reverb}) and with reverberant (\textit{with reverb}) settings, both models exhibit similar variations in perceptual scores and objective metrics, with both frameworks exhibiting noticeable performance degradation in severe reverberant environments. These results indicate that time-unconditional framework achieves generalization comparable to traditional flows. To further validate our framework, future work will focus on extensive evaluations in universal speech enhancement.
 
 \subsection{Ablation Study on Timestep Embedding}
-To evaluate the explicit impact of the timestep embedding and inference efficiency, an ablation study was conducted within a unified 27.8M parameter framework. As reported in Table~\ref{tab:ablation}, removing the timestep embedding (w/o $t$) affects both enhancement quality and inference velocity.
+To evaluate the explicit impact of the timestep embedding and inference efficiency, an ablation study was conducted within a unified 27.8M parameter framework. As reported in Table~\ref{tab:ablation}, removing the timestep embedding (w/o $t$) improves both enhancement quality and inference velocity.
 
 At $NFE=1$, ARFSE (w/o $t$) achieves a PESQ of 2.97 and an eSTOI of 0.88, whereas FlowSE (w/ $t$) and the MeanFlowSE baseline yield PESQ scores of 2.87 and 2.94, respectively. Concurrently, by removing the architectural modules associated with temporal conditioning and time-step modulation layers, ARFSE reduces the RTF to 0.02 at $NFE=1$. This corresponds to a lower RTF compared to FlowSE (0.05) and MeanFlowSE (0.11), providing empirical support for the hypothesis that explicit temporal conditioning is mathematically redundant for linear-path speech enhancement.
 
